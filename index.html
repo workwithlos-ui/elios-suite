@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELIOS — AI Operating Systems for Elite Operators</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #050505;
+  --surface: #0d0d0d;
+  --border: #1a1a1a;
+  --border-mid: #242424;
+  --text: #f0ede8;
+  --sub: #5a5a5a;
+  --dim: #2a2a2a;
+  --lime: #c8f542;
+  --lime-dim: rgba(200,245,66,0.08);
+  --lime-mid: rgba(200,245,66,0.15);
+  --red: #ff4444;
+  --amber: #f5a623;
+  --green: #22c55e;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', 'Courier New', monospace;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+::selection { background: rgba(200,245,66,0.25); }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
+
+/* GRAIN OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.6;
+}
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(5,5,5,0.92);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+}
+.nav-logo {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--lime);
+  letter-spacing: 0.12em;
+  text-decoration: none;
+}
+.nav-links {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 12px;
+  color: var(--sub);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--mono);
+  letter-spacing: 0.1em;
+  color: var(--bg);
+  background: var(--lime);
+  padding: 7px 18px;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.nav-cta:hover { opacity: 0.85; }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 40px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Grid lines background */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(200,245,66,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,245,66,0.03) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events: none;
+}
+
+/* Radial glow */
+.hero-glow {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 500px;
+  background: radial-gradient(ellipse, rgba(200,245,66,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--lime);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: '';
+  width: 32px;
+  height: 1px;
+  background: var(--lime);
+  opacity: 0.4;
+}
+
+.hero-headline {
+  font-family: var(--serif);
+  font-size: clamp(42px, 7vw, 88px);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  max-width: 900px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+.hero-headline em {
+  font-style: italic;
+  color: var(--lime);
+}
+.hero-subhead {
+  font-size: clamp(15px, 1.8vw, 18px);
+  color: var(--sub);
+  max-width: 520px;
+  line-height: 1.65;
+  margin: 24px auto 44px;
+  position: relative;
+  z-index: 1;
+}
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+.btn-primary {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--bg);
+  background: var(--lime);
+  padding: 13px 28px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-ghost {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--sub);
+  background: transparent;
+  padding: 13px 28px;
+  border-radius: 6px;
+  text-decoration: none;
+  border: 1px solid var(--border-mid);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--sub); }
+
+.hero-stats {
+  display: flex;
+  gap: 48px;
+  justify-content: center;
+  margin-top: 64px;
+  padding-top: 48px;
+  border-top: 1px solid var(--border);
+  width: 100%;
+  max-width: 640px;
+  position: relative;
+  z-index: 1;
+}
+.stat-value {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  display: block;
+  letter-spacing: -0.02em;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--sub);
+  letter-spacing: 0.06em;
+  display: block;
+  margin-top: 4px;
+}
+
+/* SECTION COMMON */
+section { padding: 96px 40px; }
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--lime);
+  margin-bottom: 20px;
+}
+.section-title {
+  font-family: var(--serif);
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  max-width: 640px;
+}
+.section-title em { font-style: italic; color: var(--lime); }
+</style>
+
+/* PRODUCTS GRID */
+.products { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.products-header { max-width: 1200px; margin: 0 auto; padding-bottom: 56px; }
+.products-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.product-card {
+  background: var(--surface);
+  padding: 36px 32px;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.product-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--lime);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+  transform-origin: left;
+}
+.product-card:hover { background: #111111; }
+.product-card:hover::before { transform: scaleX(1); }
+.product-card.large {
+  grid-column: span 2;
+}
+.product-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--lime);
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.product-tag::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-mid);
+}
+.product-name {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+.product-tagline {
+  font-size: 13px;
+  color: var(--sub);
+  line-height: 1.55;
+  margin-bottom: 28px;
+  max-width: 360px;
+}
+.product-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.product-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--sub);
+  line-height: 1.4;
+}
+.product-feature::before {
+  content: '+';
+  color: var(--lime);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 0;
+}
+.product-link {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--lime);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+.product-link::after {
+  content: '→';
+  transition: transform 0.2s;
+}
+.product-card:hover .product-link::after { transform: translateX(4px); }
+.product-metrics {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.product-metric-val {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  display: block;
+}
+.product-metric-lab {
+  font-size: 10px;
+  color: var(--sub);
+  letter-spacing: 0.06em;
+}
+
+/* PROOF SECTION */
+.proof { max-width: 1200px; margin: 0 auto; }
+.proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 56px;
+}
+.proof-card {
+  background: var(--bg);
+  padding: 36px 32px;
+}
+.proof-number {
+  font-family: var(--serif);
+  font-size: 52px;
+  font-weight: 400;
+  color: var(--lime);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.proof-desc {
+  font-size: 14px;
+  color: var(--sub);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.proof-source {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+}
+
+/* INTELLIGENCE SECTION */
+.intelligence { overflow: hidden; }
+.intelligence-inner { max-width: 1200px; margin: 0 auto; }
+.intelligence-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  margin-top: 56px;
+}
+.intelligence-steps { display: flex; flex-direction: column; gap: 0; }
+.intel-step {
+  display: flex;
+  gap: 24px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: default;
+  transition: all 0.2s;
+}
+.intel-step:first-child { padding-top: 0; }
+.intel-step:last-child { border-bottom: none; }
+.intel-step:hover .intel-step-num { color: var(--lime); }
+.intel-step-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+  padding-top: 2px;
+  transition: color 0.2s;
+}
+.intel-step-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.intel-step-desc {
+  font-size: 13px;
+  color: var(--sub);
+  line-height: 1.6;
+}
+.intelligence-visual {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.intelligence-visual::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(200,245,66,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.visual-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--lime);
+  margin-bottom: 20px;
+}
+.visual-metric-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.visual-metric-row:last-child { border-bottom: none; }
+.visual-metric-name {
+  font-size: 12px;
+  color: var(--sub);
+  min-width: 130px;
+  font-family: var(--mono);
+}
+.visual-bar-wrap { flex: 1; height: 3px; background: var(--dim); border-radius: 2px; overflow: hidden; }
+.visual-bar { height: 100%; border-radius: 2px; background: var(--lime); }
+.visual-val {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 40px;
+  text-align: right;
+}
+.visual-sev {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.sev-crit { background: rgba(255,68,68,0.12); color: #ff6666; border: 1px solid rgba(255,68,68,0.3); }
+.sev-opp { background: var(--lime-dim); color: var(--lime); border: 1px solid rgba(200,245,66,0.25); }
+.sev-warn { background: rgba(245,166,35,0.1); color: #f5a623; border: 1px solid rgba(245,166,35,0.25); }
+</style>
+
+/* CTA SECTION */
+.cta-section {
+  text-align: center;
+  padding: 120px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.cta-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 100%, rgba(200,245,66,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.cta-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(200,245,66,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,245,66,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+.cta-inner { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+.cta-title {
+  font-family: var(--serif);
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.cta-title em { font-style: italic; color: var(--lime); }
+.cta-sub { font-size: 16px; color: var(--sub); margin-bottom: 40px; line-height: 1.6; }
+.cta-products-list {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+.cta-product-chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--sub);
+  padding: 5px 12px;
+  border: 1px solid var(--border-mid);
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.cta-product-chip:hover { color: var(--lime); border-color: rgba(200,245,66,0.3); }
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-brand {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--sub);
+  letter-spacing: 0.1em;
+}
+.footer-brand span { color: var(--lime); }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a {
+  font-size: 11px;
+  color: var(--sub);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--text); }
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-1 { animation: fadeUp 0.6s ease forwards; animation-delay: 0.1s; opacity: 0; }
+.animate-2 { animation: fadeUp 0.6s ease forwards; animation-delay: 0.2s; opacity: 0; }
+.animate-3 { animation: fadeUp 0.6s ease forwards; animation-delay: 0.35s; opacity: 0; }
+.animate-4 { animation: fadeUp 0.6s ease forwards; animation-delay: 0.5s; opacity: 0; }
+.animate-5 { animation: fadeUp 0.6s ease forwards; animation-delay: 0.65s; opacity: 0; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .products-grid { grid-template-columns: 1fr; }
+  .product-card.large { grid-column: span 1; }
+  .proof-grid { grid-template-columns: 1fr; }
+  .intelligence-grid { grid-template-columns: 1fr; }
+  .hero-stats { gap: 28px; }
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  section { padding: 72px 20px; }
+  footer { padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">ELIOS</a>
+  <ul class="nav-links">
+    <li><a href="#products">Products</a></li>
+    <li><a href="#proof">Results</a></li>
+    <li><a href="#intelligence">How it works</a></li>
+  </ul>
+  <a href="https://suite-tan-nine.vercel.app" class="nav-cta" target="_blank">MEET THE BOARD</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-eyebrow animate-1">AI OPERATING SYSTEMS · 33V PORTFOLIO</div>
+  <h1 class="hero-headline animate-2">
+    Your business runs on<br>
+    <em>five AI officers.</em><br>
+    Not one chatbot.
+  </h1>
+  <p class="hero-subhead animate-3">
+    Five standalone intelligence systems — each purpose-built for a different function.
+    Each one replaces a $90K hire. All five together replace a C-suite.
+  </p>
+  <div class="hero-actions animate-4">
+    <a href="https://suite-tan-nine.vercel.app" class="btn-primary" target="_blank">MEET YOUR BOARD →</a>
+    <a href="#products" class="btn-ghost">SEE ALL SYSTEMS</a>
+  </div>
+  <div class="hero-stats animate-5">
+    <div>
+      <span class="stat-value">58s</span>
+      <span class="stat-label">SPEED-TO-LEAD</span>
+    </div>
+    <div>
+      <span class="stat-value">$400K</span>
+      <span class="stat-label">REVENUE · TEAM OF 2</span>
+    </div>
+    <div>
+      <span class="stat-value">5</span>
+      <span class="stat-label">AI EXECUTIVES</span>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="products" id="products">
+  <div class="products-header">
+    <div class="section-label">THE PORTFOLIO</div>
+    <h2 class="section-title">Five systems. <em>One operator.</em> Zero headcount.</h2>
+  </div>
+  <div class="products-grid" style="max-width:1200px;margin:0 auto;">
+
+    <!-- SUITE — large -->
+    <a href="https://suite-tan-nine.vercel.app" class="product-card large" target="_blank">
+      <div class="product-tag">SUITE · ADVISORY BOARD</div>
+      <div class="product-name">SUITE</div>
+      <p class="product-tagline">Your AI executive board. Five specialist officers — Revenue, Growth, Operations, Finance, and Technical Architecture — respond simultaneously from their domain.</p>
+      <div class="product-metrics">
+        <div><span class="product-metric-val">5</span><span class="product-metric-lab">OFFICERS</span></div>
+        <div><span class="product-metric-val">&lt;3s</span><span class="product-metric-lab">RESPONSE</span></div>
+        <div><span class="product-metric-val">$50K</span><span class="product-metric-lab">REPLACED/YR</span></div>
+      </div>
+      <div class="product-features">
+        <div class="product-feature">Rex runs Hormozi acquisition math on your exact pipeline</div>
+        <div class="product-feature">Priya flags when your LTV:CAC drops below 3x before you notice</div>
+        <div class="product-feature">Board Briefing: ask one question, all 5 respond with genuine disagreement</div>
+      </div>
+      <div class="product-link">OPEN BOARDROOM</div>
+    </a>
+
+    <!-- SAGE -->
+    <a href="https://sage-rosy-chi.vercel.app/mission" class="product-card" target="_blank">
+      <div class="product-tag">SAGE · MEDIA OS</div>
+      <div class="product-name">SAGE</div>
+      <p class="product-tagline">Raw material in. SPCL-scored, platform-native content out. 4-stage critique loop — generate, critique, revise, score independently.</p>
+      <div class="product-features">
+        <div class="product-feature">Claude Opus generation — Sonnet scores independently</div>
+        <div class="product-feature">SPCL scoring: Status, Power, Credibility, Likeness</div>
+        <div class="product-feature">Awareness-stage targeting: unaware to most aware</div>
+      </div>
+      <div class="product-link">OPEN SAGE</div>
+    </a>
+
+    <!-- PRESS -->
+    <a href="https://press-zeta.vercel.app" class="product-card" target="_blank">
+      <div class="product-tag">PRESS · CONTENT ENGINE</div>
+      <div class="product-name">PRESS</div>
+      <p class="product-tagline">12 anti-slop rules enforced on every output. Voice DNA extraction and injection. Koe, Hormozi, Ferriss, and Welsh frameworks baked in.</p>
+      <div class="product-features">
+        <div class="product-feature">Neural voice engine — learns your exact tone after 3 samples</div>
+        <div class="product-feature">Human score detection — flags AI-sounding patterns before you post</div>
+        <div class="product-feature">7 platforms: LinkedIn, Twitter, Instagram, Email, Blog, YouTube, Shorts</div>
+      </div>
+      <div class="product-link">OPEN PRESS</div>
+    </a>
+
+    <!-- PAID -->
+    <a href="https://growth-engine-topaz.vercel.app/diagnostic" class="product-card" target="_blank">
+      <div class="product-tag">PAID · BUSINESS DIAGNOSTIC</div>
+      <div class="product-name">PAID</div>
+      <p class="product-tagline">5-minute diagnostic. Specific 30/60/90-day growth playbook. Real Hormozi math on your actual numbers — not generic advice.</p>
+      <div class="product-features">
+        <div class="product-feature">LTV:CAC benchmark vs your industry — with dollar gap</div>
+        <div class="product-feature">Root cause analysis — 4 specific causes with dollar impact</div>
+        <div class="product-feature">Risk flags: dollar estimate of what inaction costs in 90 days</div>
+      </div>
+      <div class="product-link">RUN DIAGNOSTIC</div>
+    </a>
+
+    <!-- RISE — large -->
+    <a href="#" class="product-card large" target="_blank" style="opacity:0.7;cursor:default;">
+      <div class="product-tag">RISE · REVENUE INTELLIGENCE</div>
+      <div class="product-name">RISE</div>
+      <p class="product-tagline">Your always-on AI growth analyst. Watches your metrics 24/7. Flags anomalies with dollar impact before you notice them. Weekly intelligence reports. Deep analysis on demand.</p>
+      <div class="product-metrics">
+        <div><span class="product-metric-val">24/7</span><span class="product-metric-lab">MONITORING</span></div>
+        <div><span class="product-metric-val">$90K</span><span class="product-metric-lab">ANALYST REPLACED</span></div>
+        <div><span class="product-metric-val">4</span><span class="product-metric-lab">SEVERITY LEVELS</span></div>
+      </div>
+      <div class="product-features">
+        <div class="product-feature">Period-over-period trend analysis — automatic</div>
+        <div class="product-feature">Claude Opus deep reports with specific benchmark comparisons</div>
+        <div class="product-feature">Connected to shared context: knows your ICPs, offers, proof bank</div>
+      </div>
+      <div class="product-link" style="color:var(--sub)">DEPLOYING SOON</div>
+    </a>
+
+  </div>
+</section>
+
+<!-- PROOF -->
+<section id="proof">
+  <div class="proof" style="text-align:center;margin-bottom:0;">
+    <div class="section-label">PROOF BANK</div>
+    <h2 class="section-title" style="margin:0 auto;text-align:center;">Results from real deployments.</h2>
+    <div class="proof-grid" style="text-align:left;">
+      <div class="proof-card">
+        <div class="proof-number">58s</div>
+        <p class="proof-desc">Speed-to-lead for Ternus Lending. Industry average: 4 hours 14 minutes. AI SDR qualifies, routes, and responds before a human opens their laptop.</p>
+        <div class="proof-source">TERNUS LENDING · SALES AI · PHASE 1</div>
+      </div>
+      <div class="proof-card">
+        <div class="proof-number">$400K</div>
+        <p class="proof-desc">Annual revenue run rate. Team of 2. Replaced $180K in salaries delivering $220K in revenue at 18% margin. Systems replaced every person.</p>
+        <div class="proof-source">ELIOS · INTERNAL · APRIL 2026</div>
+      </div>
+      <div class="proof-card">
+        <div class="proof-number">340%</div>
+        <p class="proof-desc">Pipeline velocity increase in the first 30 days after AI SDR deployment. Zero leads went cold after hours. Close rate improved before changing any sales behavior.</p>
+        <div class="proof-source">TERNUS LENDING · 30-DAY RESULT</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTELLIGENCE -->
+<section class="intelligence" id="intelligence">
+  <div class="intelligence-inner">
+    <div class="section-label">HOW IT WORKS</div>
+    <h2 class="section-title">One context layer.<br><em>Five intelligent systems.</em></h2>
+    <div class="intelligence-grid">
+      <div class="intelligence-steps">
+        <div class="intel-step">
+          <div class="intel-step-num">01</div>
+          <div>
+            <div class="intel-step-title">Load your context once</div>
+            <div class="intel-step-desc">Your ICPs, proof bank, offers, voice rules, and business metrics go into a shared intelligence layer. Every product reads from it.</div>
+          </div>
+        </div>
+        <div class="intel-step">
+          <div class="intel-step-num">02</div>
+          <div>
+            <div class="intel-step-title">Every output uses your data</div>
+            <div class="intel-step-desc">SAGE generates content for your specific ICP at their awareness stage. SUITE's Rex runs math on your actual pipeline numbers, not generic examples.</div>
+          </div>
+        </div>
+        <div class="intel-step">
+          <div class="intel-step-num">03</div>
+          <div>
+            <div class="intel-step-title">Critique loops enforce quality</div>
+            <div class="intel-step-desc">Content is generated, critiqued adversarially, revised, then scored by an independent model. Self-grading is removed. The score reflects real quality.</div>
+          </div>
+        </div>
+        <div class="intel-step">
+          <div class="intel-step-num">04</div>
+          <div>
+            <div class="intel-step-title">RISE watches for anomalies</div>
+            <div class="intel-step-desc">As metrics update, RISE flags what changed, why it matters, and what it costs if ignored. Weekly reports before you ask for them.</div>
+          </div>
+        </div>
+      </div>
+      <div class="intelligence-visual">
+        <div class="visual-label">RISE INTELLIGENCE FEED · LIVE</div>
+        <div class="visual-metric-row">
+          <span class="visual-metric-name">Speed-to-Lead</span>
+          <span class="visual-sev sev-opp">OPPORTUNITY</span>
+          <div class="visual-bar-wrap" style="margin-left:auto;"><div class="visual-bar" style="width:96%;background:var(--lime)"></div></div>
+          <span class="visual-val" style="color:var(--lime)">58s</span>
+        </div>
+        <div class="visual-metric-row">
+          <span class="visual-metric-name">LTV:CAC Ratio</span>
+          <span class="visual-sev sev-warn">WARNING</span>
+          <div class="visual-bar-wrap" style="margin-left:auto;"><div class="visual-bar" style="width:58%;background:var(--amber)"></div></div>
+          <span class="visual-val" style="color:var(--amber)">1.9x</span>
+        </div>
+        <div class="visual-metric-row">
+          <span class="visual-metric-name">Churn Rate</span>
+          <span class="visual-sev sev-crit">CRITICAL</span>
+          <div class="visual-bar-wrap" style="margin-left:auto;"><div class="visual-bar" style="width:78%;background:var(--red)"></div></div>
+          <span class="visual-val" style="color:var(--red)">7.2%</span>
+        </div>
+        <div class="visual-metric-row">
+          <span class="visual-metric-name">Pipeline Velocity</span>
+          <span class="visual-sev sev-opp">OPPORTUNITY</span>
+          <div class="visual-bar-wrap" style="margin-left:auto;"><div class="visual-bar" style="width:82%;background:var(--lime)"></div></div>
+          <span class="visual-val" style="color:var(--lime)">+340%</span>
+        </div>
+        <div class="visual-metric-row">
+          <span class="visual-metric-name">SPCL Content Score</span>
+          <span class="visual-sev sev-opp">STRONG</span>
+          <div class="visual-bar-wrap" style="margin-left:auto;"><div class="visual-bar" style="width:92%;background:var(--lime)"></div></div>
+          <span class="visual-val" style="color:var(--lime)">92</span>
+        </div>
+        <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--sub);letter-spacing:0.1em;margin-bottom:10px;">TOP ACTION THIS WEEK</div>
+          <p style="font-size:12px;color:var(--sub);line-height:1.6;">LTV:CAC at 1.9x vs agency benchmark of 3.2x. At current trajectory, fixing CAC payback is worth ~$18K/month in margin. Rex has the model.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2 class="cta-title">Stop guessing.<br><em>Start knowing.</em></h2>
+    <p class="cta-sub">Every system is live. Every system knows your business. Start with the board — ask Rex what your pipeline looks like in 90 days.</p>
+    <div class="cta-products-list">
+      <a href="https://suite-tan-nine.vercel.app" class="cta-product-chip" target="_blank">SUITE</a>
+      <a href="https://sage-rosy-chi.vercel.app/mission" class="cta-product-chip" target="_blank">SAGE</a>
+      <a href="https://press-zeta.vercel.app" class="cta-product-chip" target="_blank">PRESS</a>
+      <a href="https://growth-engine-topaz.vercel.app/diagnostic" class="cta-product-chip" target="_blank">PAID</a>
+      <span class="cta-product-chip" style="opacity:0.4;cursor:default;">RISE ↗</span>
+    </div>
+    <a href="https://suite-tan-nine.vercel.app" class="btn-primary" target="_blank">MEET YOUR BOARD →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand">ELIOS · <span>33V PORTFOLIO</span> · AI OPERATING SYSTEMS</div>
+  <div class="footer-links">
+    <a href="https://suite-tan-nine.vercel.app" target="_blank">SUITE</a>
+    <a href="https://sage-rosy-chi.vercel.app" target="_blank">SAGE</a>
+    <a href="https://press-zeta.vercel.app" target="_blank">PRESS</a>
+    <a href="https://growth-engine-topaz.vercel.app" target="_blank">PAID</a>
+  </div>
+</footer>
+
+</body>
+</html>
